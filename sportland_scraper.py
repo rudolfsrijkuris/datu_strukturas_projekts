@@ -19,19 +19,24 @@ class SportlandScraper:
             self.driver.get(url)
 
             # Sagaidam, kad produkti ielādējas
-            wait = WebDriverWait(self.driver, 10)
+            wait = WebDriverWait(self.driver, 20)
             products = wait.until(
-                EC.presence_of_all_elements_located((By.CLASS_NAME, "ProductCard-Content"))
+                EC.presence_of_all_elements_located((By.CLASS_NAME, "ProductCard"))
             )
 
             # Iegūst produktu datus
             product_list = []
             for product in products:
                 try:
+                    # Find the content div that contains name and price
+                    content = product.find_element(By.CSS_SELECTOR, ".ProductCard-Content_Base .ProductCard-Content")
+                    price_element = product.find_element(By.CSS_SELECTOR, ".ProductPrice ins data")
+                    
                     product_data = {
-                        'name': product.find_element(By.CLASS_NAME, "ProductCard-Name").text,
-                        'price': product.find_element(By.CLASS_NAME, "ProductPrice").text,
-                        'brand': product.find_element(By.CLASS_NAME, "ProductCard-Brand").text,
+                        'name': content.find_element(By.CLASS_NAME, "ProductCard-Name").text,
+                        'price': price_element.get_attribute("value"),
+                        'brand': content.find_element(By.CLASS_NAME, "ProductCard-Brand").text,
+                        'link': product.find_element(By.CSS_SELECTOR, "a.ProductCard-Link").get_attribute('href')
                     }
                     product_list.append(product_data)
                 except Exception as e:
