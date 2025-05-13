@@ -50,8 +50,8 @@ Projekta izstrādes laikā es konsultējos ar Sportland pārdevēju, lai preciz�
 
 *`/search` komanda Discordā*
 
-![image.png](https://file.notion.so/f/f/be891d8f-650c-40d7-a0ea-25392dfc9697/fc0471e6-f389-4236-b799-585b669f6290/image.png?table=block&id=1f241c33-ee73-80f2-9484-cd8656410933&spaceId=be891d8f-650c-40d7-a0ea-25392dfc9697&expirationTimestamp=1747267200000&signature=JQLis9pYJoQ1Q3CH7FGTeBSRsd95o7-jwujadB3I4h4&downloadName=image.png)
+![search-discord.png](/images/search-discord.png)
 
 *`/list` komanda Discordā*
 
-![image.png](https://file.notion.so/f/f/be891d8f-650c-40d7-a0ea-25392dfc9697/0c75a77e-6ce1-4984-8b36-8e3bb0712d67/image.png?table=block&id=1f241c33-ee73-808d-bce1-d2b47afe3545&spaceId=be891d8f-650c-40d7-a0ea-25392dfc9697&expirationTimestamp=1747267200000&signature=JWnvAiu5CmVWDvsNNY4-sf9uI1GEb-mo53HZ0v-LGqs&downloadName=image.png)
+![list-discord.png](/images/list-discord.png)
