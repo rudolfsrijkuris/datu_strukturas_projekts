@@ -13,14 +13,27 @@ class SportlandScraper:
         chrome_options.add_argument("--disable-dev-shm-usage")
 
         self.driver = webdriver.Chrome(options=chrome_options)
+        self.wait = WebDriverWait(self.driver, 20)
+
+    def get_product_sku(self, url):
+        try:
+            self.driver.get(url)
+            sku_element = self.wait.until(
+                EC.presence_of_element_located((By.CLASS_NAME, "ProductActions-ProductSku"))
+            )
+            # Extract just the SKU code after the '#' symbol
+            sku = sku_element.text.split('#')[1].strip()
+            return sku
+        except Exception as e:
+            print(f"Kļūda iegūstot SKU: {str(e)}")
+            return None
 
     def get_products(self, url):
         try:
             self.driver.get(url)
 
             # Sagaidam, kad produkti ielādējas
-            wait = WebDriverWait(self.driver, 20)
-            products = wait.until(
+            products = self.wait.until(
                 EC.presence_of_all_elements_located((By.CLASS_NAME, "ProductCard"))
             )
 
@@ -40,7 +53,17 @@ class SportlandScraper:
                     }
                     product_list.append(product_data)
                 except Exception as e:
-                    print(f"Kļūda iegūstot produktu: {str(e)}")
+                    print(f"Kļūda iegūstot produkta pamatinformāciju: {str(e)}")
+                    continue
+
+            # Tagad apmeklējam katru produkta lapu, lai iegūtu SKU
+            for product_data in product_list:
+                try:
+                    sku = self.get_product_sku(product_data['link'])
+                    if sku:
+                        product_data['sku'] = sku
+                except Exception as e:
+                    print(f"Kļūda iegūstot produkta SKU: {str(e)}")
                     continue
 
             return product_list
