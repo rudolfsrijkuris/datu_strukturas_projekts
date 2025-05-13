@@ -133,9 +133,16 @@ class SportlandScraper:
             product_list = ProductList()
             for product in products:
                 try:
-                    # Find the content div that contains name and price
+                    # Atrod div elementu, kas satur name un price
                     content = product.find_element(By.CSS_SELECTOR, ".ProductCard-Content_Base .ProductCard-Content")
-                    price_element = product.find_element(By.CSS_SELECTOR, ".ProductPrice ins data")
+                    
+                    # Atrod cenu gan produktiem ar atlaidi, gan bez
+                    try:
+                        # Mēģina atrast cenu ar atlaidi (ins tag)
+                        price_element = product.find_element(By.CSS_SELECTOR, ".ProductPrice ins data")
+                    except:
+                        # Ja neizdodas, mēģina atrast cenu bez atlaides (direct data tag)
+                        price_element = product.find_element(By.CSS_SELECTOR, ".ProductPrice data")
                     
                     product_data = Product(
                         name=content.find_element(By.CLASS_NAME, "ProductCard-Name").text,
