@@ -2,33 +2,60 @@
 
 ## Projekta uzdevums
 
-Šī projekta mērķis ir izstrādāt “web scraper”, kas iegūst produktu informāciju no Sportland mājas lapas un saglabā to `.xlsx` failā, lai to varētu izmantot Sportland pārdevēji sava darba atvieglošanai.
+Šī projekta mērķis ir izstrādāt automatizētu risinājumu Sportland pārdevējiem, kas ietver:
+1. Web scraper, kas automātiski iegūst aktuālo produktu informāciju no Sportland mājas lapas
+2. Datu strukturēšanu un saglabāšanu `.xlsx` formātā
+3. Discord botu kā ērtu lietotāja saskarni datu piekļuvei
+
+Risinājums aizstāj manuālu produktu meklēšanu ar automatizētu sistēmu, ievērojami samazinot laiku, kas nepieciešams, lai atrastu informāciju par produktiem.
 
 ## Izmantotās bibliotēkas
 
 **Selenium**
 
-Lai izstrādātu “web scraper” es izmantoju *Selenium* bibliotēku, jo Sportland mājas lapa izmanto JavaScript, lai dinamiski renderētu mājas lapas saturu. Mana izvēle bija par labu Selenium, jo tas izmanto reālu pārlūku un simulē reālu mājas lapas lietotāju, lai veiktu “web scraping”, kas šajā gadījumā nebūtu iespējams ar parastiem HTTP pieprasījumiem.
+Lai izstrādātu "web scraper" es izmantoju *Selenium* bibliotēku, jo
+- Sportland mājas lapa izmanto JavaScript, lai dinamiski renderētu saturu
+- Selenium spēj simulēt reāla lietotāja darbības (klikšķi, scrolling, u.c.)
+- Var gaidīt līdz elementi ielādējas, kas ir būtiski dinamiskām lapām
+- Spēj apstrādāt modernās web tehnoloģijas
+- Nodrošina iespēju apiet vienkāršas anti-bot aizsardzības
 
 **webdriver-manager**
 
-Automātiski lejupielādē pareizos pārlūka draiverus priekš Selenium, izvairoties no to manuālas menedžēšanas.
+Automātiski lejupielādē un pārvalda pārlūka draiverus priekš Selenium
+- Nodrošina pareizo draiveru versiju atbilstoši pārlūka versijai
+- Automātiski atjaunina draiverus, kad nepieciešams
+- Darbojas uz visām operētājsistēmām bez papildus konfigurācijas
 
 **openpyxl**
 
-Tiek izmantots, lai ģenerētu `.xlsx` ar produktu informāciju. Šajā gadījumā `.xlsx` fails tiek izmantots kā datubāze.
+Tiek izmantots, lai ģenerētu `.xlsx` ar produktu informāciju
+- Ļauj formatēt šūnas un pielāgot kolonnu platumu
+- Saglabā datu tipus un formātus
+- Kalpo kā datubāze produktu informācijas glabāšanai
 
 **discord.py**
 
-Tiek izmantots, lai izveidotu Discord botu un nodrošinātu lietotāju saskarni ar datubāzi.
+Tiek izmantots Discord bota izstrādei ar šādām funkcijām
+- `/search <produkta_kods>` - meklē konkrētu produktu pēc tā koda
+- `/list [lapas_numurs]` - parāda produktu sarakstu (max 20 produkti lapā)
+- Formatēti ziņojumi ar embed funkcionalitāti
+- Kļūdu apstrāde un lietotājam draudzīgi paziņojumi
 
 **pandas**
 
-Tiek izmantots iekš Discord bota, lai nodrošinātu datu iegūšanu un apstrādi no `.xlsx` faila.
+Nodrošina efektīvu datu apstrādi Discord botā
+- Excel failu lasīšana un datu strukturēšana
+- Ātra meklēšana un filtrēšana lielā datu kopā
+- Datu manipulācijas operācijas
+- Automātiska datu tipu konvertācija
 
 **python-dotenv**
 
-Tiek izmantots, lai droši glabātu Discord bota token lokālā vidē.
+Nodrošina drošu konfigurācijas pārvaldību
+- Discord bota token glabāšana ārpus koda
+- Viegla vides mainīgo pārvaldība
+- Droša izstrādes un produkcijas vides konfigurācija
 
 ## Projekta izmantošanas metodes
 
