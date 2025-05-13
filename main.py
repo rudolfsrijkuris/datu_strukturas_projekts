@@ -51,7 +51,8 @@ class ExcelExporter:
 
 def main():
     scraper = SportlandScraper()
-    products = scraper.get_products("https://sportland.lv/viriesu/apavi")
+    # products = scraper.get_products("https://sportland.lv/viriesu/apavi")
+    products = scraper.get_products("https://sportland.lv/sieviesu/apavi")
     
     # Export to Excel
     exporter = ExcelExporter()

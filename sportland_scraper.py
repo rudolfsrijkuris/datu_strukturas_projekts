@@ -98,148 +98,139 @@ class SportlandScraper:
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--window-size=1920,1080")  # Set larger window size
-
+        chrome_options.add_argument("--window-size=1920,1080")
+        chrome_options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36")
+        
         self.driver = webdriver.Chrome(options=chrome_options)
         self.wait = WebDriverWait(self.driver, 20)
-
-    def click_view_all_button(self):
-        try:
-            # Mēģina atrast "Skatīt visu" pogu
-            view_all_button = self.wait.until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "button.CategoryProductList-ViewAllButton"))
-            )
-            
-            # Ritina līdz pogai
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", view_all_button)
-            # Pagaida mazliet, lai lapa nostabilizējas
-            time.sleep(2)
-            
-            # Atceras sākotnējo produktu skaitu
-            initial_count = len(self.driver.find_elements(By.CLASS_NAME, "ProductCard"))
-            
-            # Mēģina noklikšķināt uz pogas
-            try:
-                view_all_button.click()
-            except ElementClickInterceptedException:
-                # Ja nevar noklikšķināt, mēģina ar JavaScript
-                self.driver.execute_script("arguments[0].click();", view_all_button)
-            
-            # Gaida līdz produktu skaits palielinās un lapa ielādējas
-            max_attempts = 10
-            attempt = 0
-            while attempt < max_attempts:
-                time.sleep(5)  # Pagaida 2 sekundes
-                current_count = len(self.driver.find_elements(By.CLASS_NAME, "ProductCard"))
-                if current_count > initial_count:
-                    # Pagaida vēl papildus, lai visi produkti pilnībā ielādējas
-                    time.sleep(5)
-                    break
-                attempt += 1
-            
-        except (TimeoutException, NoSuchElementException) as e:
-            print("Info: 'Skatīt visu' poga netika atrasta vai visi produkti jau ir redzami")
-        except Exception as e:
-            print(f"Kļūda mēģinot noklikšķināt uz 'Skatīt visu' pogas: {str(e)}")
 
     def get_product_details(self, url):
         try:
             self.driver.get(url)
+            time.sleep(2)  # Ļauj lapai ielādēties
             
-            # Atrod produkta kodu
-            sku_element = self.wait.until(
-                EC.presence_of_element_located((By.CLASS_NAME, "ProductActions-ProductSku"))
-            )
-            sku = sku_element.text.split('#')[1].strip()
-            
-            # Atrod pieejamos izmērus
-            available_sizes = []
-            size_elements = self.driver.find_elements(By.CSS_SELECTOR, ".ProductAttributeValue:not(.ProductAttributeValue_isNotAvailable) .ProductAttributeValue-StringText")
-            for size_element in size_elements:
-                available_sizes.append(size_element.text)
-            
-            return sku, available_sizes
+            try:
+                # Atrod produkta kodu
+                sku_element = self.wait.until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "ProductActions-ProductSku"))
+                )
+                sku_text = sku_element.text.strip()
+                sku = sku_text.split('#')[1].strip() if '#' in sku_text else sku_text
+                
+                # Atrod pieejamos izmērus
+                available_sizes = []
+                try:
+                    size_elements = self.wait.until(
+                        EC.presence_of_all_elements_located(
+                            (By.CSS_SELECTOR, ".ProductAttributeValue:not(.ProductAttributeValue_isNotAvailable) .ProductAttributeValue-StringText")
+                        )
+                    )
+                    available_sizes = [size.text.strip() for size in size_elements if size.text.strip()]
+                except TimeoutException:
+                    print(f"Brīdinājums: Nav atrasti izmēri produktam {url}")
+                
+                return sku, available_sizes
+                
+            except (TimeoutException, NoSuchElementException, IndexError) as e:
+                print(f"Brīdinājums: Neizdevās iegūt SKU produktam {url}: {str(e)}")
+                return None, []
+                
         except Exception as e:
-            print(f"Kļūda iegūstot produkta detaļas: {str(e)}")
+            print(f"Kļūda iegūstot produkta detaļas no {url}: {str(e)}")
             return None, []
 
     def get_products(self, url):
         try:
-            self.driver.get(url)
-
-            # Noklikšķina uz "Skatīt visu" pogas, ja tāda ir
-            self.click_view_all_button()
-
-            # Sagaidam, kad produkti ielādējas
-            self.wait.until(
-                EC.presence_of_all_elements_located((By.CLASS_NAME, "ProductCard"))
-            )
-            
-            # Pagaida, lai visi produkti pilnībā ielādējas
-            time.sleep(5)
-
-            # Iegūst visus produktus
-            products = self.driver.find_elements(By.CLASS_NAME, "ProductCard")
-            print(f"Atrasti {len(products)} produkti")
-
-            # Iegūst produktu datus
+            print("Sāku produktu iegūšanu no:", url)
             product_list = ProductList()
-            for product in products:
+            page = 1
+            total_products = 0
+            
+            while True:
+                page_url = f"{url}?page={page}"
+                print(f"\nApstrādāju {page}. lapu: {page_url}")
+                
                 try:
-                    # Pagaida līdz produkta saturs ir ielādējies
-                    self.wait.until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, ".ProductCard-Content_Base .ProductCard-Content"))
-                    )
+                    self.driver.get(page_url)
+                    time.sleep(2)  # Ļauj lapai ielādēties
                     
-                    # Atrod div elementu, kas satur name un price
-                    content = product.find_element(By.CSS_SELECTOR, ".ProductCard-Content_Base .ProductCard-Content")
-                    
-                    # Atrod cenu gan produktiem ar atlaidi, gan bez
-                    price_element = None
                     try:
-                        # Mēģina atrast cenu ar atlaidi (ins tag)
-                        price_element = product.find_element(By.CSS_SELECTOR, ".ProductPrice ins data")
-                    except NoSuchElementException:
-                        try:
-                            # Ja neizdodas, mēģina atrast cenu bez atlaides (direct data tag)
-                            price_element = product.find_element(By.CSS_SELECTOR, ".ProductPrice data")
-                        except NoSuchElementException:
-                            print("Neizdevās atrast cenu produktam")
-                            continue
-                    
-                    if not price_element:
-                        continue
-                        
-                    try:
-                        product_data = Product(
-                            name=content.find_element(By.CLASS_NAME, "ProductCard-Name").text,
-                            price=price_element.get_attribute("value"),
-                            brand=content.find_element(By.CLASS_NAME, "ProductCard-Brand").text,
-                            link=product.find_element(By.CSS_SELECTOR, "a.ProductCard-Link").get_attribute('href')
+                        # Gaida līdz produkti ielādējas
+                        products = self.wait.until(
+                            EC.presence_of_all_elements_located((By.CLASS_NAME, "ProductCard"))
                         )
-                        product_list.add_product(product_data)
-                    except Exception as e:
-                        print(f"Kļūda veidojot produkta objektu: {str(e)}")
-                        continue
-
+                        
+                        if not products:
+                            print(f"Lapa {page} ir tukša. Beidzu skrāpēšanu.")
+                            break
+                        
+                        # Apstrādā katru produktu
+                        page_products = 0
+                        for product in products:
+                            try:
+                                # Atrod produkta elementus
+                                content = product.find_element(By.CSS_SELECTOR, ".ProductCard-Content_Base .ProductCard-Content")
+                                
+                                # Atrod cenu
+                                try:
+                                    price_element = product.find_element(By.CSS_SELECTOR, ".ProductPrice ins data")
+                                except NoSuchElementException:
+                                    try:
+                                        price_element = product.find_element(By.CSS_SELECTOR, ".ProductPrice data")
+                                    except NoSuchElementException:
+                                        print("Neizdevās atrast cenu produktam")
+                                        continue
+                                
+                                # Izveido produkta objektu
+                                product_data = Product(
+                                    name=content.find_element(By.CLASS_NAME, "ProductCard-Name").text,
+                                    price=price_element.get_attribute("value"),
+                                    brand=content.find_element(By.CLASS_NAME, "ProductCard-Brand").text,
+                                    link=product.find_element(By.CSS_SELECTOR, "a.ProductCard-Link").get_attribute('href')
+                                )
+                                
+                                product_list.add_product(product_data)
+                                page_products += 1
+                                
+                            except Exception as e:
+                                print(f"Kļūda apstrādājot produktu: {str(e)}")
+                                continue
+                        
+                        total_products += page_products
+                        print(f"No {page}. lapas iegūti {page_products} produkti")
+                        print(f"Kopā līdz šim iegūti {total_products} produkti")
+                        
+                        if page_products == 0:
+                            break
+                            
+                        page += 1
+                        
+                    except TimeoutException:
+                        print(f"Lapa {page} neielādējās. Beidzu skrāpēšanu.")
+                        break
+                        
                 except Exception as e:
-                    print(f"Kļūda iegūstot produkta pamatinformāciju: {str(e)}")
-                    continue
-
-            print(f"Veiksmīgi iegūti dati par {len(product_list._products)} produktiem")
-
-            # Tagad apmeklējam katru produkta lapu, lai iegūtu SKU un izmērus
-            for product in product_list:
+                    print(f"Kļūda ielādējot {page}. lapu: {str(e)}")
+                    break
+            
+            print(f"\nKopā iegūti {total_products} produkti no {page-1} lapām")
+            
+            # Iegūst detalizētu informāciju par katru produktu
+            print("\nIegūstu detalizētu informāciju par produktiem...")
+            for i, product in enumerate(product_list, 1):
                 try:
                     sku, available_sizes = self.get_product_details(product.link)
                     if sku:
                         product.sku = sku
                     product.sizes = available_sizes
+                    if i % 5 == 0:
+                        print(f"Iegūta detalizēta informācija par {i}/{len(product_list._products)} produktiem")
                 except Exception as e:
-                    print(f"Kļūda iegūstot produkta detaļas: {str(e)}")
+                    print(f"Kļūda iegūstot produkta {i}/{len(product_list._products)} detaļas: {str(e)}")
                     continue
-
+            
             return product_list.to_dict_list()
+            
         except Exception as e:
             print(f"Kļūda iegūstot produktus: {str(e)}")
             return []
