@@ -5,12 +5,13 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 
 class Product:
-    def __init__(self, name="", price="", brand="", link="", sku=None):
+    def __init__(self, name="", price="", brand="", link="", sku=None, sizes=None):
         self._name = name
         self._price = price
         self._brand = brand
         self._link = link
         self._sku = sku
+        self._sizes = sizes if sizes is not None else []
 
     @property
     def name(self):
@@ -52,13 +53,22 @@ class Product:
     def sku(self, value):
         self._sku = value
 
+    @property
+    def sizes(self):
+        return self._sizes
+
+    @sizes.setter
+    def sizes(self, value):
+        self._sizes = value
+
     def to_dict(self):
         return {
             'name': self._name,
             'price': self._price,
             'brand': self._brand,
             'link': self._link,
-            'sku': self._sku
+            'sku': self._sku,
+            'sizes': self._sizes
         }
 
     def __str__(self):
@@ -89,18 +99,26 @@ class SportlandScraper:
         self.driver = webdriver.Chrome(options=chrome_options)
         self.wait = WebDriverWait(self.driver, 20)
 
-    def get_product_sku(self, url):
+    def get_product_details(self, url):
         try:
             self.driver.get(url)
+            
+            # Atrod produkta kodu
             sku_element = self.wait.until(
                 EC.presence_of_element_located((By.CLASS_NAME, "ProductActions-ProductSku"))
             )
-            # Extract just the SKU code after the '#' symbol
             sku = sku_element.text.split('#')[1].strip()
-            return sku
+            
+            # Atrod pieejamos izmērus
+            available_sizes = []
+            size_elements = self.driver.find_elements(By.CSS_SELECTOR, ".ProductAttributeValue:not(.ProductAttributeValue_isNotAvailable) .ProductAttributeValue-StringText")
+            for size_element in size_elements:
+                available_sizes.append(size_element.text)
+            
+            return sku, available_sizes
         except Exception as e:
-            print(f"Kļūda iegūstot SKU: {str(e)}")
-            return None
+            print(f"Kļūda iegūstot produkta detaļas: {str(e)}")
+            return None, []
 
     def get_products(self, url):
         try:
@@ -130,14 +148,15 @@ class SportlandScraper:
                     print(f"Kļūda iegūstot produkta pamatinformāciju: {str(e)}")
                     continue
 
-            # Tagad apmeklējam katru produkta lapu, lai iegūtu SKU
+            # Tagad apmeklējam katru produkta lapu, lai iegūtu SKU un izmērus
             for product in product_list:
                 try:
-                    sku = self.get_product_sku(product.link)
+                    sku, available_sizes = self.get_product_details(product.link)
                     if sku:
                         product.sku = sku
+                    product.sizes = available_sizes
                 except Exception as e:
-                    print(f"Kļūda iegūstot produkta SKU: {str(e)}")
+                    print(f"Kļūda iegūstot produkta detaļas: {str(e)}")
                     continue
 
             return product_list.to_dict_list()
