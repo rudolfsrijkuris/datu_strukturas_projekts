@@ -1,5 +1,6 @@
 from sportland_scraper import SportlandScraper
 from openpyxl import Workbook
+from openpyxl.styles import Font
 from datetime import datetime
 
 class ExcelExporter:
@@ -10,8 +11,11 @@ class ExcelExporter:
         
         # Set up headers
         headers = ["Nosaukums", "Zīmols", "Cena", "Produkta kods", "Pieejamie izmēri", "Saite"]
+        bold_font = Font(bold=True)
+        
         for col, header in enumerate(headers, 1):
-            self.ws.cell(row=1, column=col, value=header)
+            cell = self.ws.cell(row=1, column=col, value=header)
+            cell.font = bold_font
     
     def export_products(self, products, filename=None):
         if filename is None:
