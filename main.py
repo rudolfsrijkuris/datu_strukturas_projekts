@@ -2,7 +2,6 @@ from sportland_scraper import SportlandScraper
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from datetime import datetime
-from discord_bot import run_discord_bot
 
 class ExcelExporter:
     def __init__(self):
@@ -51,16 +50,14 @@ class ExcelExporter:
         return filename
 
 def main():
-    # scraper = SportlandScraper()
-    # # products = scraper.get_products("https://sportland.lv/viriesu/apavi")
-    # products = scraper.get_products("https://sportland.lv/sieviesu/apavi")
+    scraper = SportlandScraper()
+    # products = scraper.get_products("https://sportland.lv/viriesu/apavi")
+    products = scraper.get_products("https://sportland.lv/sieviesu/apavi")
     
-    # # Export to Excel
-    # exporter = ExcelExporter()
-    # filename = exporter.export_products(products)
-    # print(f"Products exported to {filename}")
-
-    run_discord_bot()
+    # Export to Excel
+    exporter = ExcelExporter()
+    filename = exporter.export_products(products)
+    print(f"Products exported to {filename}")
 
 if __name__ == "__main__":
     main()
