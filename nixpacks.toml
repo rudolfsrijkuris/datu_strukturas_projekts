@@ -1,7 +1,7 @@
 [phases.setup]
 nixPkgs = [
     "python311",
-    "python311Packages.discord.py",
+    "python311Packages.discordpy",
     "python311Packages.openpyxl",
     "python311Packages.pandas",
     "python311Packages.python-dotenv"
