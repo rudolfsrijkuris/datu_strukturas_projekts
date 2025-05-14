@@ -1,9 +1,10 @@
 [phases.setup]
 nixPkgs = [
     "python311",
-    "python311Packages.pip",
-    "python311Packages.setuptools",
-    "python311Packages.wheel"
+    "python311Packages.discord-py",
+    "python311Packages.openpyxl",
+    "python311Packages.pandas",
+    "python311Packages.python-dotenv"
 ]
 
 [phases.install]
@@ -16,5 +17,4 @@ cmd = "python3 discord_bot.py"
 
 [variables]
 PYTHONUNBUFFERED = "1"
-PATH = "/root/.local/bin:${PATH}"
-PYTHONPATH = "/root/.local/lib/python3.11/site-packages:${PYTHONPATH}" 
+PYTHONPATH = "/app:${PYTHONPATH}" 
