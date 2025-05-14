@@ -1,14 +1,14 @@
 [phases.setup]
-nixPkgs = ['python311']
+nixPkgs = ['python311', 'python311Packages.pip']
 
 [phases.install]
 cmds = [
-    'python -m pip install --upgrade pip',
-    'python -m pip install -r requirements.txt'
+    'python3 -m ensurepip --upgrade',
+    'python3 -m pip install --no-cache-dir -r requirements.txt'
 ]
 
 [start]
-cmd = 'python discord_bot.py'
+cmd = 'python3 discord_bot.py'
 
 [variables]
 PYTHONUNBUFFERED = "1" 
