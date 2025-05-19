@@ -36,6 +36,9 @@ async def on_ready():
 
 @bot.tree.command(name="search", description="Meklē produktu pēc SKU")
 async def search(interaction: discord.Interaction, sku: str):
+    # Convert SKU to uppercase
+    sku = sku.upper()
+    
     # Load products
     df = load_products()
     if df is None:
